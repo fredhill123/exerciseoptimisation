@@ -1,0 +1,778 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Strength">
+    <meta name="theme-color" content="#0a0a0f">
+    <meta name="description"
+        content="Find optimal workout combinations based on movement patterns, exercise potency, and synergy">
+    <title>Strength Efficiency Optimizer</title>
+    <link rel="manifest" href="manifest.json">
+    <link rel="apple-touch-icon" href="icon-192.png">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
+        rel="stylesheet">
+    <style>
+        :root {
+            --bg-primary: #0a0a0f;
+            --bg-secondary: #12121a;
+            --bg-tertiary: #1a1a25;
+            --bg-card: linear-gradient(145deg, #151520 0%, #1a1a28 100%);
+            --accent-primary: #6366f1;
+            --accent-secondary: #8b5cf6;
+            --accent-gradient: linear-gradient(135deg, #6366f1 0%, #8b5cf6 50%, #a855f7 100%);
+            --text-primary: #f8fafc;
+            --text-secondary: #94a3b8;
+            --text-muted: #64748b;
+            --success: #22c55e;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+            --border: rgba(255, 255, 255, 0.08);
+            --glow: 0 0 40px rgba(99, 102, 241, 0.15);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            min-height: 100vh;
+            line-height: 1.6;
+        }
+
+        .bg-pattern {
+            position: fixed;
+            inset: 0;
+            background:
+                radial-gradient(ellipse at 20% 20%, rgba(99, 102, 241, 0.08) 0%, transparent 50%),
+                radial-gradient(ellipse at 80% 80%, rgba(139, 92, 246, 0.06) 0%, transparent 50%),
+                radial-gradient(ellipse at 50% 50%, rgba(168, 85, 247, 0.04) 0%, transparent 70%);
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .container {
+            position: relative;
+            z-index: 1;
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 3rem;
+            padding: 3rem 2rem;
+            background: var(--bg-card);
+            border-radius: 24px;
+            border: 1px solid var(--border);
+            box-shadow: var(--glow);
+        }
+
+        h1 {
+            font-size: 2.75rem;
+            font-weight: 800;
+            background: var(--accent-gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 0.75rem;
+            letter-spacing: -0.02em;
+        }
+
+        .subtitle {
+            color: var(--text-secondary);
+            font-size: 1.1rem;
+            font-weight: 400;
+        }
+
+        .score-legend {
+            display: flex;
+            justify-content: center;
+            gap: 2rem;
+            margin-top: 2rem;
+            flex-wrap: wrap;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+        }
+
+        .legend-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+        }
+
+        .legend-dot.ideal {
+            background: var(--success);
+        }
+
+        .legend-dot.solid {
+            background: var(--accent-primary);
+        }
+
+        .legend-dot.average {
+            background: var(--warning);
+        }
+
+        .legend-dot.poor {
+            background: var(--danger);
+        }
+
+        .tabs {
+            display: flex;
+            justify-content: center;
+            gap: 0.5rem;
+            margin-bottom: 2rem;
+            flex-wrap: wrap;
+        }
+
+        .tab {
+            padding: 1rem 2rem;
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            color: var(--text-secondary);
+            font-weight: 600;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .tab:hover {
+            background: var(--bg-secondary);
+            border-color: var(--accent-primary);
+            color: var(--text-primary);
+        }
+
+        .tab.active {
+            background: var(--accent-gradient);
+            border-color: transparent;
+            color: white;
+            box-shadow: 0 4px 20px rgba(99, 102, 241, 0.4);
+        }
+
+        .results-container {
+            display: none;
+        }
+
+        .results-container.active {
+            display: block;
+        }
+
+        .results-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+            padding: 0 0.5rem;
+        }
+
+        .results-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--text-primary);
+        }
+
+        .combo-count {
+            font-size: 0.9rem;
+            color: var(--text-muted);
+            background: var(--bg-tertiary);
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+        }
+
+        .workout-grid {
+            display: grid;
+            gap: 1.25rem;
+        }
+
+        .workout-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            padding: 1.5rem;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .workout-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: var(--accent-gradient);
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .workout-card:hover {
+            transform: translateY(-4px);
+            border-color: rgba(99, 102, 241, 0.3);
+            box-shadow: var(--glow);
+        }
+
+        .workout-card:hover::before {
+            opacity: 1;
+        }
+
+        .workout-card.rank-1 {
+            border-color: rgba(34, 197, 94, 0.4);
+            box-shadow: 0 0 30px rgba(34, 197, 94, 0.1);
+        }
+
+        .workout-card.rank-1::before {
+            background: linear-gradient(90deg, #22c55e, #4ade80);
+            opacity: 1;
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 1rem;
+        }
+
+        .rank-badge {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .rank-number {
+            font-size: 1.25rem;
+            font-weight: 800;
+            color: var(--accent-primary);
+        }
+
+        .rank-1 .rank-number {
+            color: var(--success);
+        }
+
+        .rank-label {
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            color: var(--text-muted);
+        }
+
+        .score-display {
+            text-align: right;
+        }
+
+        .score-value {
+            font-size: 2rem;
+            font-weight: 800;
+            line-height: 1;
+        }
+
+        .score-value.ideal {
+            color: var(--success);
+        }
+
+        .score-value.solid {
+            color: var(--accent-primary);
+        }
+
+        .score-value.average {
+            color: var(--warning);
+        }
+
+        .score-value.poor {
+            color: var(--danger);
+        }
+
+        .score-max {
+            font-size: 0.875rem;
+            color: var(--text-muted);
+        }
+
+        .exercises-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+            margin-bottom: 1.25rem;
+        }
+
+        .exercise-tag {
+            background: rgba(99, 102, 241, 0.1);
+            border: 1px solid rgba(99, 102, 241, 0.2);
+            padding: 0.4rem 0.75rem;
+            border-radius: 8px;
+            font-size: 0.875rem;
+            font-weight: 500;
+            color: var(--text-primary);
+            transition: all 0.2s ease;
+        }
+
+        .exercise-tag:hover {
+            background: rgba(99, 102, 241, 0.2);
+            border-color: rgba(99, 102, 241, 0.4);
+        }
+
+        .breakdown {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1rem;
+        }
+
+        .breakdown-item {
+            background: var(--bg-tertiary);
+            padding: 1rem;
+            border-radius: 12px;
+        }
+
+        .breakdown-label {
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: var(--text-muted);
+            margin-bottom: 0.25rem;
+        }
+
+        .breakdown-score {
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: var(--text-primary);
+        }
+
+        .breakdown-bar {
+            height: 4px;
+            background: var(--bg-primary);
+            border-radius: 2px;
+            margin-top: 0.5rem;
+            overflow: hidden;
+        }
+
+        .breakdown-fill {
+            height: 100%;
+            background: var(--accent-gradient);
+            border-radius: 2px;
+            transition: width 0.5s ease;
+        }
+
+        .breakdown-details {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            margin-top: 0.5rem;
+        }
+
+        .detail-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 0.2rem 0;
+        }
+
+        .status-pass {
+            color: var(--success);
+        }
+
+        .status-fail {
+            color: var(--danger);
+        }
+
+        .status-partial {
+            color: var(--warning);
+        }
+
+        .loading {
+            text-align: center;
+            padding: 4rem;
+            color: var(--text-muted);
+        }
+
+        .loading-spinner {
+            width: 48px;
+            height: 48px;
+            border: 3px solid var(--bg-tertiary);
+            border-top-color: var(--accent-primary);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 1rem;
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 1rem;
+            }
+
+            h1 {
+                font-size: 2rem;
+            }
+
+            .breakdown {
+                grid-template-columns: 1fr;
+            }
+
+            .tabs {
+                gap: 0.25rem;
+            }
+
+            .tab {
+                padding: 0.75rem 1rem;
+                font-size: 0.875rem;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="bg-pattern"></div>
+    <div class="container">
+        <header>
+            <h1>Strength Efficiency Optimizer</h1>
+            <p class="subtitle">Find the optimal workout combinations based on movement patterns, exercise potency, and
+                synergy</p>
+            <div class="score-legend">
+                <div class="legend-item">
+                    <div class="legend-dot ideal"></div>
+                    <span>90-100: Ideal</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-dot solid"></div>
+                    <span>70-89: Solid</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-dot average"></div>
+                    <span>50-69: Average</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-dot poor"></div>
+                    <span>&lt;50: Poor</span>
+                </div>
+            </div>
+        </header>
+
+        <div class="tabs">
+            <button class="tab active" data-count="3">3 Exercises</button>
+            <button class="tab" data-count="4">4 Exercises</button>
+            <button class="tab" data-count="5">5 Exercises</button>
+            <button class="tab" data-count="6">6 Exercises</button>
+        </div>
+
+        <div id="results">
+            <div class="loading">
+                <div class="loading-spinner"></div>
+                <p>Calculating optimal combinations...</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Exercise database (27 exercises - optimized for performance)
+        const exercises = [
+            { name: "Back Squat", tier_points: 5, knee_dominant: 1, hip_dominant: 0, upper_push: 0, upper_pull: 0, plane: "NA", heavy_spinal_loader: 1 },
+            { name: "Front Squat", tier_points: 5, knee_dominant: 1, hip_dominant: 0, upper_push: 0, upper_pull: 0, plane: "NA", heavy_spinal_loader: 0 },
+            { name: "Conventional Deadlift", tier_points: 5, knee_dominant: 0, hip_dominant: 1, upper_push: 0, upper_pull: 0, plane: "NA", heavy_spinal_loader: 1 },
+            { name: "Trap Bar Deadlift", tier_points: 5, knee_dominant: 1, hip_dominant: 1, upper_push: 0, upper_pull: 0, plane: "NA", heavy_spinal_loader: 0 },
+            { name: "Barbell Bench Press", tier_points: 5, knee_dominant: 0, hip_dominant: 0, upper_push: 1, upper_pull: 0, plane: "horizontal", heavy_spinal_loader: 0 },
+            { name: "Standing Barbell OHP", tier_points: 5, knee_dominant: 0, hip_dominant: 0, upper_push: 1, upper_pull: 0, plane: "vertical", heavy_spinal_loader: 1 },
+            { name: "Weighted Pull-up", tier_points: 5, knee_dominant: 0, hip_dominant: 0, upper_push: 0, upper_pull: 1, plane: "vertical", heavy_spinal_loader: 0 },
+            { name: "Dumbbell Bench Press", tier_points: 4, knee_dominant: 0, hip_dominant: 0, upper_push: 1, upper_pull: 0, plane: "horizontal", heavy_spinal_loader: 0 },
+            { name: "Incline DB Press", tier_points: 4, knee_dominant: 0, hip_dominant: 0, upper_push: 1, upper_pull: 0, plane: "horizontal", heavy_spinal_loader: 0 },
+            { name: "Dips", tier_points: 4, knee_dominant: 0, hip_dominant: 0, upper_push: 1, upper_pull: 0, plane: "vertical", heavy_spinal_loader: 0 },
+            { name: "Barbell Row", tier_points: 4, knee_dominant: 0, hip_dominant: 0, upper_push: 0, upper_pull: 1, plane: "horizontal", heavy_spinal_loader: 0 },
+            { name: "Dumbbell Row", tier_points: 4, knee_dominant: 0, hip_dominant: 0, upper_push: 0, upper_pull: 1, plane: "horizontal", heavy_spinal_loader: 0 },
+            { name: "Lunges", tier_points: 4, knee_dominant: 1, hip_dominant: 0, upper_push: 0, upper_pull: 0, plane: "NA", heavy_spinal_loader: 0 },
+            { name: "Bulgarian Split Squat", tier_points: 4, knee_dominant: 1, hip_dominant: 0, upper_push: 0, upper_pull: 0, plane: "NA", heavy_spinal_loader: 0 },
+            { name: "Romanian DL", tier_points: 4, knee_dominant: 0, hip_dominant: 1, upper_push: 0, upper_pull: 0, plane: "NA", heavy_spinal_loader: 0 },
+            { name: "Leg Press", tier_points: 4, knee_dominant: 1, hip_dominant: 0, upper_push: 0, upper_pull: 0, plane: "NA", heavy_spinal_loader: 0 },
+            { name: "Weighted Push-ups", tier_points: 4, knee_dominant: 0, hip_dominant: 0, upper_push: 1, upper_pull: 0, plane: "horizontal", heavy_spinal_loader: 0 },
+            { name: "Lat Pulldown", tier_points: 2, knee_dominant: 0, hip_dominant: 0, upper_push: 0, upper_pull: 1, plane: "vertical", heavy_spinal_loader: 0 },
+            { name: "Goblet Squat", tier_points: 2, knee_dominant: 1, hip_dominant: 0, upper_push: 0, upper_pull: 0, plane: "NA", heavy_spinal_loader: 0 },
+            { name: "Hyperextensions", tier_points: 2, knee_dominant: 0, hip_dominant: 1, upper_push: 0, upper_pull: 0, plane: "NA", heavy_spinal_loader: 0 },
+            { name: "Kettlebell Swing", tier_points: 2, knee_dominant: 0, hip_dominant: 1, upper_push: 0, upper_pull: 0, plane: "NA", heavy_spinal_loader: 0 },
+            { name: "Chin-up", tier_points: 5, knee_dominant: 0, hip_dominant: 0, upper_push: 0, upper_pull: 1, plane: "vertical", heavy_spinal_loader: 0 },
+            { name: "Power Clean", tier_points: 4, knee_dominant: 1, hip_dominant: 1, upper_push: 0, upper_pull: 0, plane: "NA", heavy_spinal_loader: 0 },
+            { name: "Farmers Walk", tier_points: 1, knee_dominant: 0, hip_dominant: 0, upper_push: 0, upper_pull: 0, plane: "NA", heavy_spinal_loader: 0 },
+            { name: "Chest Supported Row", tier_points: 4, knee_dominant: 0, hip_dominant: 0, upper_push: 0, upper_pull: 1, plane: "horizontal", heavy_spinal_loader: 0 },
+            { name: "Inverted Row", tier_points: 2, knee_dominant: 0, hip_dominant: 0, upper_push: 0, upper_pull: 1, plane: "horizontal", heavy_spinal_loader: 0 },
+            { name: "Step-ups", tier_points: 4, knee_dominant: 1, hip_dominant: 0, upper_push: 0, upper_pull: 0, plane: "NA", heavy_spinal_loader: 0 }
+        ];
+
+        // Scoring functions
+        function scorePart1(workout) {
+            const hasKnee = workout.some(e => e.knee_dominant);
+            const hasHip = workout.some(e => e.hip_dominant);
+            const hasPush = workout.some(e => e.upper_push);
+            const hasPull = workout.some(e => e.upper_pull);
+
+            let score = 0;
+            if (hasKnee) score += 10;
+            if (hasHip) score += 10;
+            if (hasPush) score += 10;
+            if (hasPull) score += 10;
+
+            return { score, hasKnee, hasHip, hasPush, hasPull };
+        }
+
+        function scorePart2(workout) {
+            const rawPotency = workout.reduce((sum, e) => sum + e.tier_points, 0);
+            const score = Math.min(30, rawPotency);
+            return { score, rawPotency };
+        }
+
+        function scorePart3(workout) {
+            const pushCount = workout.filter(e => e.upper_push).length;
+            const pullCount = workout.filter(e => e.upper_pull).length;
+
+            // Push/Pull Balance
+            let pushPullScore, pushPullStatus;
+            if (pushCount === 0 && pullCount === 0) {
+                pushPullScore = 0;
+                pushPullStatus = 'no_upper';
+            } else if (pullCount >= pushCount) {
+                pushPullScore = 10;
+                pushPullStatus = 'pass';
+            } else {
+                pushPullScore = 0;
+                pushPullStatus = 'fail';
+            }
+
+            // Spinal Management
+            const hasBackSquat = workout.some(e => e.name === 'Back Squat');
+            const hasConvDL = workout.some(e => e.name === 'Conventional Deadlift');
+            let spinalScore, spinalStatus;
+            if (hasBackSquat && hasConvDL) {
+                spinalScore = 0;
+                spinalStatus = 'fail';
+            } else {
+                spinalScore = 10;
+                spinalStatus = 'pass';
+            }
+
+            // Plane Coverage
+            const hasVertical = workout.some(e => e.plane === 'vertical');
+            const hasHorizontal = workout.some(e => e.plane === 'horizontal');
+            let planeScore, planeStatus;
+            if (hasVertical && hasHorizontal) {
+                planeScore = 10;
+                planeStatus = 'both';
+            } else if (hasVertical || hasHorizontal) {
+                planeScore = 5;
+                planeStatus = 'one';
+            } else {
+                planeScore = 0;
+                planeStatus = 'none';
+            }
+
+            return {
+                score: pushPullScore + spinalScore + planeScore,
+                pushPullScore, pushPullStatus, pushCount, pullCount,
+                spinalScore, spinalStatus,
+                planeScore, planeStatus
+            };
+        }
+
+        function scoreWorkout(workout) {
+            const part1 = scorePart1(workout);
+            const part2 = scorePart2(workout);
+            const part3 = scorePart3(workout);
+
+            return {
+                total: part1.score + part2.score + part3.score,
+                part1, part2, part3,
+                exercises: workout.map(e => e.name)
+            };
+        }
+
+        // Generate combinations
+        function* combinations(arr, k) {
+            if (k === 0) { yield []; return; }
+            if (arr.length < k) return;
+
+            const [first, ...rest] = arr;
+            for (const combo of combinations(rest, k - 1)) {
+                yield [first, ...combo];
+            }
+            yield* combinations(rest, k);
+        }
+
+        function findTopCombinations(nExercises, topN = 10) {
+            const allCombos = [...combinations(exercises, nExercises)];
+            const scored = allCombos.map(combo => scoreWorkout(combo));
+            scored.sort((a, b) => b.total - a.total);
+            return { results: scored.slice(0, topN), totalCombos: allCombos.length };
+        }
+
+        // UI Functions
+        function getScoreClass(score) {
+            if (score >= 90) return 'ideal';
+            if (score >= 70) return 'solid';
+            if (score >= 50) return 'average';
+            return 'poor';
+        }
+
+        function getStatusClass(status) {
+            if (status === 'pass' || status === 'both') return 'status-pass';
+            if (status === 'fail') return 'status-fail';
+            return 'status-partial';
+        }
+
+        function renderResults(nExercises) {
+            const { results, totalCombos } = findTopCombinations(nExercises, 10);
+
+            let html = `
+                <div class="results-header">
+                    <h2 class="results-title">Top 10 ${nExercises}-Exercise Combinations</h2>
+                    <span class="combo-count">${totalCombos.toLocaleString()} possible combinations</span>
+                </div>
+                <div class="workout-grid">
+            `;
+
+            results.forEach((result, index) => {
+                const rank = index + 1;
+                const scoreClass = getScoreClass(result.total);
+
+                html += `
+                    <div class="workout-card${rank === 1 ? ' rank-1' : ''}">
+                        <div class="card-header">
+                            <div class="rank-badge">
+                                <span class="rank-number">#${rank}</span>
+                                <span class="rank-label">Rank</span>
+                            </div>
+                            <div class="score-display">
+                                <div class="score-value ${scoreClass}">${result.total}</div>
+                                <div class="score-max">/ 100</div>
+                            </div>
+                        </div>
+                        
+                        <div class="exercises-list">
+                            ${result.exercises.map(e => `<span class="exercise-tag">${e}</span>`).join('')}
+                        </div>
+                        
+                        <div class="breakdown">
+                            <div class="breakdown-item">
+                                <div class="breakdown-label">Movement Coverage</div>
+                                <div class="breakdown-score">${result.part1.score} / 40</div>
+                                <div class="breakdown-bar">
+                                    <div class="breakdown-fill" style="width: ${(result.part1.score / 40) * 100}%"></div>
+                                </div>
+                                <div class="breakdown-details">
+                                    <div class="detail-row">
+                                        <span>Knee</span>
+                                        <span class="${result.part1.hasKnee ? 'status-pass' : 'status-fail'}">${result.part1.hasKnee ? '✓' : '✗'}</span>
+                                    </div>
+                                    <div class="detail-row">
+                                        <span>Hip</span>
+                                        <span class="${result.part1.hasHip ? 'status-pass' : 'status-fail'}">${result.part1.hasHip ? '✓' : '✗'}</span>
+                                    </div>
+                                    <div class="detail-row">
+                                        <span>Push</span>
+                                        <span class="${result.part1.hasPush ? 'status-pass' : 'status-fail'}">${result.part1.hasPush ? '✓' : '✗'}</span>
+                                    </div>
+                                    <div class="detail-row">
+                                        <span>Pull</span>
+                                        <span class="${result.part1.hasPull ? 'status-pass' : 'status-fail'}">${result.part1.hasPull ? '✓' : '✗'}</span>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="breakdown-item">
+                                <div class="breakdown-label">Exercise Potency</div>
+                                <div class="breakdown-score">${result.part2.score} / 30</div>
+                                <div class="breakdown-bar">
+                                    <div class="breakdown-fill" style="width: ${(result.part2.score / 30) * 100}%"></div>
+                                </div>
+                                <div class="breakdown-details">
+                                    <div class="detail-row">
+                                        <span>Raw Total</span>
+                                        <span>${result.part2.rawPotency} pts</span>
+                                    </div>
+                                    <div class="detail-row">
+                                        <span>Capped</span>
+                                        <span>${result.part2.score} pts</span>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="breakdown-item">
+                                <div class="breakdown-label">Synergy & Context</div>
+                                <div class="breakdown-score">${result.part3.score} / 30</div>
+                                <div class="breakdown-bar">
+                                    <div class="breakdown-fill" style="width: ${(result.part3.score / 30) * 100}%"></div>
+                                </div>
+                                <div class="breakdown-details">
+                                    <div class="detail-row">
+                                        <span>Push/Pull</span>
+                                        <span class="${getStatusClass(result.part3.pushPullStatus)}">${result.part3.pushPullScore}/10</span>
+                                    </div>
+                                    <div class="detail-row">
+                                        <span>Spinal</span>
+                                        <span class="${getStatusClass(result.part3.spinalStatus)}">${result.part3.spinalScore}/10</span>
+                                    </div>
+                                    <div class="detail-row">
+                                        <span>Planes</span>
+                                        <span class="${getStatusClass(result.part3.planeStatus)}">${result.part3.planeScore}/10</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+
+            html += '</div>';
+            document.getElementById('results').innerHTML = html;
+        }
+
+        // Tab switching
+        document.querySelectorAll('.tab').forEach(tab => {
+            tab.addEventListener('click', () => {
+                document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+                tab.classList.add('active');
+                const count = parseInt(tab.dataset.count);
+
+                document.getElementById('results').innerHTML = `
+                    <div class="loading">
+                        <div class="loading-spinner"></div>
+                        <p>Calculating optimal combinations...</p>
+                    </div>
+                `;
+
+                // Use setTimeout to allow UI to update before heavy computation
+                setTimeout(() => renderResults(count), 50);
+            });
+        });
+
+        // Initial render
+        setTimeout(() => renderResults(3), 100);
+
+        // Register Service Worker for offline support
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('./sw.js')
+                    .then(registration => {
+                        console.log('SW registered:', registration.scope);
+                    })
+                    .catch(error => {
+                        console.log('SW registration failed:', error);
+                    });
+            });
+        }
+    </script>
+</body>
+
+</html>

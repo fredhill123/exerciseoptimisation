@@ -493,6 +493,91 @@
             font-weight: 700;
             color: var(--text-primary);
         }
+
+        .view-toggle {
+            display: flex;
+            justify-content: center;
+            gap: 0.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .view-toggle button {
+            padding: 0.75rem 1.5rem;
+            border: 1px solid var(--border);
+            background: var(--bg-tertiary);
+            color: var(--text-secondary);
+            border-radius: 12px;
+            font-size: 0.875rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .view-toggle button.active {
+            background: var(--accent-gradient);
+            color: white;
+            border-color: transparent;
+        }
+
+        .frontier-container {
+            display: none;
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .frontier-container.visible {
+            display: block;
+        }
+
+        .frontier-container h3 {
+            text-align: center;
+            margin-bottom: 1rem;
+            color: var(--text-secondary);
+            font-size: 1rem;
+            font-weight: 600;
+        }
+
+        #frontierChart {
+            width: 100%;
+            height: 400px;
+            background: var(--bg-secondary);
+            border-radius: 12px;
+        }
+
+        .frontier-legend {
+            display: flex;
+            justify-content: center;
+            gap: 2rem;
+            margin-top: 1rem;
+            font-size: 0.875rem;
+        }
+
+        .frontier-legend-item {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .legend-dot-frontier {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+        }
+
+        .legend-dot-frontier.optimal {
+            background: #22c55e;
+        }
+
+        .legend-dot-frontier.good {
+            background: #6366f1;
+        }
+
+        .legend-dot-frontier.poor {
+            background: #64748b;
+        }
     </style>
 </head>
 
@@ -545,6 +630,30 @@
                 <label>Synergy</label>
                 <input type="range" id="weight-synergy" min="0" max="100" value="30">
                 <span class="weight-value" id="weight-synergy-val">30</span>
+            </div>
+        </div>
+
+        <div class="view-toggle">
+            <button id="view-rankings" class="active">Rankings</button>
+            <button id="view-frontier">Efficiency Frontier</button>
+        </div>
+
+        <div class="frontier-container" id="frontierContainer">
+            <h3>Potency vs Synergy Trade-off (Higher = Better)</h3>
+            <canvas id="frontierChart"></canvas>
+            <div class="frontier-legend">
+                <div class="frontier-legend-item">
+                    <div class="legend-dot-frontier optimal"></div>
+                    <span>Pareto Optimal</span>
+                </div>
+                <div class="frontier-legend-item">
+                    <div class="legend-dot-frontier good"></div>
+                    <span>Top 100</span>
+                </div>
+                <div class="frontier-legend-item">
+                    <div class="legend-dot-frontier poor"></div>
+                    <span>Others</span>
+                </div>
             </div>
         </div>
 
@@ -967,6 +1076,199 @@
 
         // Initial render
         setTimeout(() => renderResults(3), 100);
+
+        // View toggle handling
+        let currentView = 'rankings';
+        const viewRankings = document.getElementById('view-rankings');
+        const viewFrontier = document.getElementById('view-frontier');
+        const frontierContainer = document.getElementById('frontierContainer');
+        const resultsContainer = document.getElementById('results');
+
+        viewRankings.addEventListener('click', () => {
+            viewRankings.classList.add('active');
+            viewFrontier.classList.remove('active');
+            frontierContainer.classList.remove('visible');
+            resultsContainer.style.display = 'block';
+            currentView = 'rankings';
+        });
+
+        viewFrontier.addEventListener('click', () => {
+            viewFrontier.classList.add('active');
+            viewRankings.classList.remove('active');
+            frontierContainer.classList.add('visible');
+            resultsContainer.style.display = 'none';
+            currentView = 'frontier';
+            renderFrontierChart(currentExerciseCount);
+        });
+
+        // Efficiency Frontier Chart
+        function calculateParetoFrontier(points) {
+            // Sort by potency descending
+            const sorted = [...points].sort((a, b) => b.potency - a.potency);
+            const frontier = [];
+            let maxSynergy = -Infinity;
+
+            for (const point of sorted) {
+                if (point.synergy > maxSynergy) {
+                    frontier.push(point);
+                    maxSynergy = point.synergy;
+                }
+            }
+            return frontier;
+        }
+
+        function renderFrontierChart(nExercises) {
+            const canvas = document.getElementById('frontierChart');
+            const ctx = canvas.getContext('2d');
+
+            // Set canvas size for high DPI
+            const rect = canvas.parentElement.getBoundingClientRect();
+            const dpr = window.devicePixelRatio || 1;
+            canvas.width = rect.width * dpr;
+            canvas.height = 400 * dpr;
+            canvas.style.width = rect.width + 'px';
+            canvas.style.height = '400px';
+            ctx.scale(dpr, dpr);
+
+            const width = rect.width;
+            const height = 400;
+            const padding = { top: 40, right: 30, bottom: 50, left: 60 };
+            const plotWidth = width - padding.left - padding.right;
+            const plotHeight = height - padding.top - padding.bottom;
+
+            // Get all combinations with potency/synergy scores
+            const allCombos = [...combinations(exercises, nExercises)];
+            const weights = getWeights();
+            const points = allCombos
+                .map(combo => {
+                    const result = scoreWorkout(combo, weights);
+                    if (result.disqualified) return null;
+                    return {
+                        potency: result.part2.score,
+                        synergy: result.part3.score,
+                        exercises: result.exercises,
+                        total: result.total
+                    };
+                })
+                .filter(p => p !== null);
+
+            // Sort by total for top 100
+            const sortedByTotal = [...points].sort((a, b) => b.total - a.total);
+            const top100 = new Set(sortedByTotal.slice(0, 100));
+
+            // Calculate Pareto frontier
+            const frontier = calculateParetoFrontier(points);
+            const frontierSet = new Set(frontier);
+
+            // Clear canvas
+            ctx.fillStyle = '#12121a';
+            ctx.fillRect(0, 0, width, height);
+
+            // Draw grid
+            ctx.strokeStyle = 'rgba(255, 255, 255, 0.1)';
+            ctx.lineWidth = 1;
+            for (let i = 0; i <= 6; i++) {
+                const x = padding.left + (plotWidth / 6) * i;
+                const y = padding.top + (plotHeight / 6) * i;
+                ctx.beginPath();
+                ctx.moveTo(x, padding.top);
+                ctx.lineTo(x, height - padding.bottom);
+                ctx.stroke();
+                ctx.beginPath();
+                ctx.moveTo(padding.left, y);
+                ctx.lineTo(width - padding.right, y);
+                ctx.stroke();
+            }
+
+            // Axis labels
+            ctx.fillStyle = '#94a3b8';
+            ctx.font = '12px Inter, sans-serif';
+            ctx.textAlign = 'center';
+            ctx.fillText('Potency Score (0-30)', width / 2, height - 10);
+            ctx.save();
+            ctx.translate(20, height / 2);
+            ctx.rotate(-Math.PI / 2);
+            ctx.fillText('Synergy Score (0-30)', 0, 0);
+            ctx.restore();
+
+            // Scale functions
+            const scaleX = (v) => padding.left + (v / 30) * plotWidth;
+            const scaleY = (v) => height - padding.bottom - (v / 30) * plotHeight;
+
+            // Axis tick labels
+            ctx.fillStyle = '#64748b';
+            ctx.font = '10px Inter';
+            ctx.textAlign = 'center';
+            for (let v = 0; v <= 30; v += 5) {
+                ctx.fillText(v.toString(), scaleX(v), height - padding.bottom + 15);
+            }
+            ctx.textAlign = 'right';
+            for (let v = 0; v <= 30; v += 5) {
+                ctx.fillText(v.toString(), padding.left - 8, scaleY(v) + 4);
+            }
+
+            // Draw points (poor first, then good, then optimal)
+            points.forEach(p => {
+                if (frontierSet.has(p) || top100.has(p)) return;
+                ctx.beginPath();
+                ctx.arc(scaleX(p.potency), scaleY(p.synergy), 3, 0, Math.PI * 2);
+                ctx.fillStyle = 'rgba(100, 116, 139, 0.4)';
+                ctx.fill();
+            });
+
+            points.forEach(p => {
+                if (frontierSet.has(p) || !top100.has(p)) return;
+                ctx.beginPath();
+                ctx.arc(scaleX(p.potency), scaleY(p.synergy), 4, 0, Math.PI * 2);
+                ctx.fillStyle = 'rgba(99, 102, 241, 0.8)';
+                ctx.fill();
+            });
+
+            // Draw frontier points and line
+            if (frontier.length > 1) {
+                ctx.strokeStyle = '#22c55e';
+                ctx.lineWidth = 2;
+                ctx.beginPath();
+                ctx.moveTo(scaleX(frontier[0].potency), scaleY(frontier[0].synergy));
+                for (let i = 1; i < frontier.length; i++) {
+                    ctx.lineTo(scaleX(frontier[i].potency), scaleY(frontier[i].synergy));
+                }
+                ctx.stroke();
+            }
+
+            frontier.forEach(p => {
+                ctx.beginPath();
+                ctx.arc(scaleX(p.potency), scaleY(p.synergy), 6, 0, Math.PI * 2);
+                ctx.fillStyle = '#22c55e';
+                ctx.fill();
+                ctx.strokeStyle = 'white';
+                ctx.lineWidth = 2;
+                ctx.stroke();
+            });
+
+            // Title with counts
+            ctx.fillStyle = '#f8fafc';
+            ctx.font = 'bold 14px Inter';
+            ctx.textAlign = 'center';
+            ctx.fillText(`${nExercises}-Exercise Workouts: ${points.length} valid, ${frontier.length} Pareto optimal`, width / 2, 20);
+        }
+
+        // Update frontier when tabs/sliders change
+        document.querySelectorAll('.tab').forEach(tab => {
+            tab.addEventListener('click', () => {
+                if (currentView === 'frontier') {
+                    setTimeout(() => renderFrontierChart(currentExerciseCount), 100);
+                }
+            });
+        });
+
+        ['coverage', 'potency', 'synergy'].forEach(type => {
+            document.getElementById(`weight-${type}`).addEventListener('change', () => {
+                if (currentView === 'frontier') {
+                    setTimeout(() => renderFrontierChart(currentExerciseCount), 100);
+                }
+            });
+        });
 
         // Register Service Worker for offline support
         if ('serviceWorker' in navigator) {

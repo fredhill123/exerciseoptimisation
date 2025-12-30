@@ -591,6 +591,252 @@
         .legend-dot-frontier.poor {
             background: #64748b;
         }
+
+        /* Mobile-First Ranking List */
+        .workout-list {
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+        }
+
+        .workout-list-item {
+            display: flex;
+            align-items: center;
+            background: var(--bg-card);
+            padding: 1rem;
+            border-radius: 16px;
+            border: 1px solid var(--border);
+            cursor: pointer;
+            transition: transform 0.2s, background 0.2s;
+        }
+
+        .workout-list-item:active {
+            transform: scale(0.98);
+            background: var(--bg-tertiary);
+        }
+
+        .list-rank {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-width: 40px;
+            margin-right: 1rem;
+        }
+
+        .rank-badge-small {
+            background: var(--bg-tertiary);
+            color: var(--text-secondary);
+            font-weight: 700;
+            font-size: 0.875rem;
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 1px solid var(--border);
+        }
+
+        .rank-1 .rank-badge-small {
+            background: var(--accent-gradient);
+            color: white;
+            border: none;
+            box-shadow: 0 0 10px rgba(99, 102, 241, 0.4);
+        }
+
+        .list-content {
+            flex: 1;
+            min-width: 0;
+            /* Truncate text correctly */
+        }
+
+        .list-exercises {
+            font-size: 0.95rem;
+            color: var(--text-primary);
+            font-weight: 500;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            margin-bottom: 0.25rem;
+        }
+
+        .list-meta {
+            display: flex;
+            gap: 1rem;
+            font-size: 0.75rem;
+            color: var(--text-muted);
+        }
+
+        .list-score {
+            font-weight: 700;
+            font-size: 1.1rem;
+            margin-left: 1rem;
+        }
+
+        /* Modal System */
+        .modal-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(4px);
+            z-index: 100;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s;
+            display: flex;
+            align-items: flex-end;
+            /* Bottom sheet on mobile */
+            justify-content: center;
+        }
+
+        .modal-overlay.active {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .modal-content {
+            background: var(--bg-secondary);
+            width: 100%;
+            max-width: 600px;
+            max-height: 90vh;
+            border-radius: 24px 24px 0 0;
+            padding: 1.5rem;
+            overflow-y: auto;
+            transform: translateY(100%);
+            transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+            border: 1px solid var(--border);
+        }
+
+        @media (min-width: 640px) {
+            .modal-overlay {
+                align-items: center;
+                padding: 2rem;
+            }
+
+            .modal-content {
+                border-radius: 24px;
+                transform: translateY(20px) scale(0.95);
+            }
+        }
+
+        .modal-overlay.active .modal-content {
+            transform: translateY(0) scale(1);
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 1.5rem;
+        }
+
+        .modal-title h2 {
+            font-size: 1.5rem;
+            font-weight: 800;
+            margin-bottom: 0.5rem;
+            background: var(--accent-gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .close-modal {
+            background: var(--bg-tertiary);
+            border: none;
+            color: var(--text-secondary);
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.25rem;
+        }
+
+        .detail-exercises {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .detail-exercise-tag {
+            background: var(--bg-tertiary);
+            padding: 0.5rem 1rem;
+            border-radius: 12px;
+            font-size: 0.9rem;
+            color: var(--text-primary);
+            border: 1px solid var(--border);
+            cursor: pointer;
+            /* Clickable for details */
+        }
+
+        .detail-exercise-tag:hover {
+            border-color: var(--accent-primary);
+            color: white;
+        }
+
+        .detail-section {
+            background: var(--bg-card);
+            padding: 1.25rem;
+            border-radius: 16px;
+            margin-bottom: 1rem;
+            border: 1px solid var(--border);
+        }
+
+        .detail-section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 0.75rem;
+        }
+
+        .detail-label {
+            font-weight: 600;
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .detail-score {
+            font-family: 'SF Mono', monospace;
+            font-weight: 700;
+            color: var(--text-primary);
+        }
+
+        .detail-score .max {
+            color: var(--text-muted);
+            font-size: 0.9em;
+        }
+
+        /* Exercise Stats Popup */
+        .stat-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+
+        .stat-box {
+            background: var(--bg-tertiary);
+            padding: 1rem;
+            border-radius: 12px;
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: white;
+            margin-bottom: 0.25rem;
+        }
+
+        .stat-label {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+        }
     </style>
 </head>
 
@@ -663,6 +909,44 @@
                 <div class="frontier-legend-item">
                     <div class="legend-dot-frontier poor"></div>
                     <span>Others</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Workout Detail Modal -->
+        <div id="workout-modal" class="modal-overlay">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <div class="modal-title">
+                        <h2 id="modal-rank">Rank #1</h2>
+                        <div class="score-display">
+                            <div class="score-value" id="modal-total-score">92</div>
+                            <div class="score-max">/ 100</div>
+                        </div>
+                    </div>
+                    <button class="close-modal" onclick="closeModal('workout-modal')">×</button>
+                </div>
+                <div class="detail-exercises" id="modal-exercises">
+                    <!-- Exercise tags populated by JS -->
+                </div>
+                <div id="modal-breakdown">
+                    <!-- Breakdown sections populated by JS -->
+                </div>
+            </div>
+        </div>
+
+        <!-- Exercise Detail Modal -->
+        <div id="exercise-modal" class="modal-overlay">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <div class="modal-title">
+                        <h2 id="ex-modal-name">Exercise Name</h2>
+                        <div class="subtitle" id="ex-modal-tier">Tier 5 (5 pts)</div>
+                    </div>
+                    <button class="close-modal" onclick="closeModal('exercise-modal')">×</button>
+                </div>
+                <div id="ex-modal-stats">
+                    <!-- Stats populated by JS -->
                 </div>
             </div>
         </div>
@@ -917,15 +1201,19 @@
             return 'status-partial';
         }
 
+        // Global results cache for modal access
+        let currentResultsCache = [];
+
         function renderResults(nExercises) {
             const { results, totalCombos, qualifiedCombos, disqualifiedCombos } = findTopCombinations(nExercises, 10);
+            currentResultsCache = results;
 
             let html = `
                 <div class="results-header">
-                    <h2 class="results-title">Top 10 ${nExercises}-Exercise Combinations</h2>
-                    <span class="combo-count">${qualifiedCombos.toLocaleString()} valid (${disqualifiedCombos} disqualified for spinal load)</span>
+                    <h2 class="results-title">Top 10 Rankings</h2>
+                    <span class="combo-count">${qualifiedCombos.toLocaleString()} valid (${disqualifiedCombos} disqualified)</span>
                 </div>
-                <div class="workout-grid">
+                <div class="workout-list">
             `;
 
             results.forEach((result, index) => {
@@ -933,96 +1221,22 @@
                 const scoreClass = getScoreClass(result.total);
 
                 html += `
-                    <div class="workout-card${rank === 1 ? ' rank-1' : ''}">
-                        <div class="card-header">
-                            <div class="rank-badge">
-                                <span class="rank-number">#${rank}</span>
-                                <span class="rank-label">Rank</span>
-                            </div>
-                            <div class="score-display">
-                                <div class="score-value ${scoreClass}">${result.total}</div>
-                                <div class="score-max">/ 100</div>
+                    <div class="workout-list-item${rank === 1 ? ' rank-1' : ''}" onclick="openWorkoutDetail(${index})">
+                        <div class="list-rank">
+                            <div class="rank-badge-small">
+                                ${rank}
                             </div>
                         </div>
-                        
-                        <div class="exercises-list">
-                            ${result.exercises.map(e => `<span class="exercise-tag">${e}</span>`).join('')}
+                        <div class="list-content">
+                            <div class="list-exercises">${result.exercises.join(', ')}</div>
+                            <div class="list-meta">
+                                <span>${result.part1.score}/40 Cov</span>
+                                <span>${result.part2.score}/30 Pot</span>
+                                <span>${result.part3.score}/30 Syn</span>
+                            </div>
                         </div>
-                        
-                        <div class="breakdown">
-                            <div class="breakdown-item">
-                                <div class="breakdown-label">Movement Coverage</div>
-                                <div class="breakdown-score">${result.part1.score} / 40</div>
-                                <div class="breakdown-bar">
-                                    <div class="breakdown-fill" style="width: ${(result.part1.score / 40) * 100}%"></div>
-                                </div>
-                                <div class="breakdown-details">
-                                    <div class="detail-row">
-                                        <span>Knee</span>
-                                        <span class="${result.part1.hasKnee ? 'status-pass' : 'status-fail'}">${result.part1.hasKnee ? '✓' : '✗'}</span>
-                                    </div>
-                                    <div class="detail-row">
-                                        <span>Hip</span>
-                                        <span class="${result.part1.hasHip ? 'status-pass' : 'status-fail'}">${result.part1.hasHip ? '✓' : '✗'}</span>
-                                    </div>
-                                    <div class="detail-row">
-                                        <span>Push</span>
-                                        <span class="${result.part1.hasPush ? 'status-pass' : 'status-fail'}">${result.part1.hasPush ? '✓' : '✗'}</span>
-                                    </div>
-                                    <div class="detail-row">
-                                        <span>Pull</span>
-                                        <span class="${result.part1.hasPull ? 'status-pass' : 'status-fail'}">${result.part1.hasPull ? '✓' : '✗'}</span>
-                                    </div>
-                                </div>
-                            </div>
-                            
-                            <div class="breakdown-item">
-                                <div class="breakdown-label">Exercise Potency</div>
-                                <div class="breakdown-score">${result.part2.score} / 30</div>
-                                <div class="breakdown-bar">
-                                    <div class="breakdown-fill" style="width: ${(result.part2.score / 30) * 100}%"></div>
-                                </div>
-                                <div class="breakdown-details">
-                                    <div class="detail-row">
-                                        <span>Raw Total</span>
-                                        <span>${result.part2.rawPotency} pts</span>
-                                    </div>
-                                    <div class="detail-row">
-                                        <span>Redundancy</span>
-                                        <span class="${result.part2.redundancyPenalty > 0 ? 'status-fail' : 'status-pass'}">${result.part2.redundancyPenalty > 0 ? '-' + result.part2.redundancyPenalty : '0'}</span>
-                                    </div>
-                                    <div class="detail-row">
-                                        <span>Effective</span>
-                                        <span>${result.part2.effectivePotency} pts</span>
-                                    </div>
-                                </div>
-                            </div>
-                            
-                            <div class="breakdown-item">
-                                <div class="breakdown-label">Synergy & Context</div>
-                                <div class="breakdown-score">${result.part3.score} / 30</div>
-                                <div class="breakdown-bar">
-                                    <div class="breakdown-fill" style="width: ${(result.part3.score / 30) * 100}%"></div>
-                                </div>
-                                <div class="breakdown-details">
-                                    <div class="detail-row">
-                                        <span>Push/Pull</span>
-                                        <span class="${getStatusClass(result.part3.pushPullStatus)}">${result.part3.pushPullScore}/10</span>
-                                    </div>
-                                    <div class="detail-row">
-                                        <span>Exhaustion</span>
-                                        <span class="${getStatusClass(result.part3.exhaustionStatus)}">${result.part3.totalExhaustion}/${result.part3.exhaustionBudget}</span>
-                                    </div>
-                                    <div class="detail-row">
-                                        <span>Spinal</span>
-                                        <span class="${result.part3.totalSpinalLoad <= result.part3.maxSpinalLoad ? 'status-pass' : 'status-fail'}">${result.part3.totalSpinalLoad}/${result.part3.maxSpinalLoad}</span>
-                                    </div>
-                                    <div class="detail-row">
-                                        <span>Planes</span>
-                                        <span class="${getStatusClass(result.part3.planeStatus)}">${result.part3.planeScore}/10</span>
-                                    </div>
-                                </div>
-                            </div>
+                        <div class="list-score ${scoreClass}">
+                            ${result.total}
                         </div>
                     </div>
                 `;
@@ -1030,6 +1244,141 @@
 
             html += '</div>';
             document.getElementById('results').innerHTML = html;
+        }
+
+        // Modal Functions
+        function closeModal(id) {
+            document.getElementById(id).classList.remove('active');
+        }
+
+        // Close modal on outside click
+        window.onclick = function (event) {
+            if (event.target.classList.contains('modal-overlay')) {
+                event.target.classList.remove('active');
+            }
+        }
+
+        function openWorkoutDetail(index) {
+            const result = currentResultsCache[index];
+            const weights = getWeights();
+
+            // Calculate dynamic weighted scores
+            // Actual = (RawScore / MaxRaw) * Weight * 100
+            const maxScore = 100;
+            const wCov = weights.coverage * maxScore;
+            const wPot = weights.potency * maxScore;
+            const wSyn = weights.synergy * maxScore;
+
+            const sCov = (result.part1.score / 40) * wCov;
+            const sPot = (result.part2.score / 30) * wPot;
+            const sSyn = (result.part3.score / 30) * wSyn;
+
+            // Header
+            document.getElementById('modal-rank').textContent = `Rank #${index + 1}`;
+            document.getElementById('modal-total-score').textContent = result.total;
+            document.getElementById('modal-total-score').className = `score-value ${getScoreClass(result.total)}`;
+
+            // Exercises
+            const exContainer = document.getElementById('modal-exercises');
+            exContainer.innerHTML = result.exercises.map(e =>
+                `<button class="detail-exercise-tag" onclick="openExerciseDetail('${e}')">${e}</button>`
+            ).join('');
+
+            // Breakdown
+            const breakdownHtml = `
+                <div class="detail-section">
+                    <div class="detail-section-header">
+                        <span class="detail-label">⚡ Coverage</span>
+                        <span class="detail-score">${sCov.toFixed(1)} <span class="max">/ ${wCov.toFixed(1)}</span></span>
+                    </div>
+                    <div class="breakdown-bar">
+                        <div class="breakdown-fill" style="width: ${(sCov / wCov) * 100}%"></div>
+                    </div>
+                    <div class="detail-row" style="margin-top:0.5rem">
+                        <span>Patterns</span>
+                        <span>${result.part1.score}/40 Raw</span>
+                    </div>
+                </div>
+
+                <div class="detail-section">
+                    <div class="detail-section-header">
+                        <span class="detail-label">💪 Potency</span>
+                        <span class="detail-score">${sPot.toFixed(1)} <span class="max">/ ${wPot.toFixed(1)}</span></span>
+                    </div>
+                    <div class="breakdown-bar">
+                        <div class="breakdown-fill" style="width: ${(sPot / wPot) * 100}%"></div>
+                    </div>
+                    <div class="detail-row" style="margin-top:0.5rem">
+                        <span>Tier Points</span>
+                        <span>${result.part2.effectivePotency} pts</span>
+                    </div>
+                </div>
+
+                <div class="detail-section">
+                    <div class="detail-section-header">
+                        <span class="detail-label">🎯 Synergy</span>
+                        <span class="detail-score">${sSyn.toFixed(1)} <span class="max">/ ${wSyn.toFixed(1)}</span></span>
+                    </div>
+                    <div class="breakdown-bar">
+                        <div class="breakdown-fill" style="width: ${(sSyn / wSyn) * 100}%"></div>
+                    </div>
+                    <div class="breakdown-details">
+                        <div class="detail-row">
+                            <span>Push/Pull</span>
+                            <span class="${getStatusClass(result.part3.pushPullStatus)}">${result.part3.pushPullScore}/10</span>
+                        </div>
+                        <div class="detail-row">
+                            <span>Exhaustion</span>
+                            <span class="${getStatusClass(result.part3.exhaustionStatus)}">${result.part3.totalExhaustion}/${result.part3.exhaustionBudget}</span>
+                        </div>
+                        <div class="detail-row">
+                            <span>Spinal Load</span>
+                            <span class="${result.part3.totalSpinalLoad <= result.part3.maxSpinalLoad ? 'status-pass' : 'status-fail'}">${result.part3.totalSpinalLoad}/${result.part3.maxSpinalLoad}</span>
+                        </div>
+                    </div>
+                </div>
+            `;
+            document.getElementById('modal-breakdown').innerHTML = breakdownHtml;
+
+            document.getElementById('workout-modal').classList.add('active');
+        }
+
+        function openExerciseDetail(name) {
+            const ex = exercises.find(e => e.name === name);
+            if (!ex) return;
+
+            document.getElementById('ex-modal-name').textContent = ex.name;
+            document.getElementById('ex-modal-tier').textContent = `Tier ${ex.tier_points} (${ex.tier_points} pts)`;
+
+            const patterns = [];
+            if (ex.knee_dominant) patterns.push('Knee');
+            if (ex.hip_dominant) patterns.push('Hip');
+            if (ex.upper_push) patterns.push('Push');
+            if (ex.upper_pull) patterns.push('Pull');
+
+            let html = `
+                <div class="stat-grid">
+                    <div class="stat-box">
+                        <div class="stat-value">${patterns.join('+')}</div>
+                        <div class="stat-label">Pattern</div>
+                    </div>
+                    <div class="stat-box">
+                        <div class="stat-value">${ex.plane !== 'NA' ? ex.plane : '—'}</div>
+                        <div class="stat-label">Plane</div>
+                    </div>
+                    <div class="stat-box">
+                        <div class="stat-value">${ex.exhaustion_cost}</div>
+                        <div class="stat-label">Exhaustion Cost</div>
+                    </div>
+                    <div class="stat-box">
+                        <div class="stat-value">${ex.spinal_load}</div>
+                        <div class="stat-label">Spinal Load</div>
+                    </div>
+                </div>
+            `;
+
+            document.getElementById('ex-modal-stats').innerHTML = html;
+            document.getElementById('exercise-modal').classList.add('active');
         }
 
         // Tab switching

@@ -837,21 +837,21 @@
         }
 
         // Get current weights from single tradeoff slider
-        // Slider value: 0 = Max Stimulus (Coverage + Potency), 100 = Max Efficiency (Synergy)
+        // Slider value: 0 = Max Stimulus bias (80/20), 100 = Max Efficiency bias (20/80)
         function getWeights() {
             const sliderEl = document.getElementById('tradeoff-slider');
             const sliderValue = sliderEl ? parseInt(sliderEl.value, 10) : 50;
 
-            // Weight ranges with sensible floors:
-            // - Coverage: 15% (max efficiency) to 50% (max stimulus)
-            // - Potency:  10% (max efficiency) to 35% (max stimulus)
-            // - Synergy:  15% (max stimulus) to 75% (max efficiency)
-            const t = sliderValue / 100; // 0 = stimulus, 1 = efficiency
+            // Map 0-100 slider to 0.20-0.80 efficiency weight range
+            // This ensures stimulus never drops below 20% and efficiency never below 20%
+            const efficiencyWeight = 0.2 + (sliderValue / 100) * 0.6;
+            const stimulusWeight = 1 - efficiencyWeight;
 
+            // Distribute stimulus weight between coverage and potency (60/40 split)
             return {
-                coverage: 0.50 - (t * 0.35),  // 50% → 15%
-                potency: 0.35 - (t * 0.25),  // 35% → 10%
-                synergy: 0.15 + (t * 0.60)   // 15% → 75%
+                coverage: stimulusWeight * 0.6,
+                potency: stimulusWeight * 0.4,
+                synergy: efficiencyWeight
             };
         }
 

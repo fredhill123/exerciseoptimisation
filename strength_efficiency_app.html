@@ -3,7 +3,13 @@
 
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <!-- Cache Control -->
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+
+    <title>Strength Efficiency Optimizer</title>
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="Strength">
@@ -1628,6 +1634,48 @@
                     });
             });
         }
+    </script>
+    <!-- Version & Updater -->
+    <div id="app-version"
+        style="text-align: center; padding: 2rem; color: var(--text-muted); font-size: 0.8rem; font-family: monospace;">
+        v2.0 Mobile UX
+    </div>
+
+    <!-- Update Checker -->
+    <div id="update-toast"
+        style="position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%) translateY(100px); background: var(--accent-gradient); color: white; padding: 12px 24px; border-radius: 50px; box-shadow: 0 4px 12px rgba(0,0,0,0.3); transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); z-index: 2000; display: flex; align-items: center; gap: 12px; cursor: pointer;">
+        <span style="font-weight: 600;">New version available!</span>
+        <button
+            style="background: white; color: var(--accent-primary); border: none; padding: 4px 12px; border-radius: 20px; font-weight: 700; font-size: 0.8rem;"
+            onclick="window.location.reload(true)">Reload</button>
+    </div>
+
+    <script>
+        // Simple Cache Buster / Update Checker
+        (async function checkUpdate() {
+            try {
+                const currentVersion = document.getElementById('app-version').textContent.trim();
+                console.log('Current version:', currentVersion);
+
+                // Fetch the page again with a timestamp to bypass cache
+                const response = await fetch(window.location.href.split('?')[0] + '?t=' + new Date().getTime());
+                const text = await response.text();
+
+                // Extract version from fetched HTML
+                const parser = new DOMParser();
+                const doc = parser.parseFromString(text, 'text/html');
+                const latestVersion = doc.getElementById('app-version').textContent.trim();
+
+                if (latestVersion !== currentVersion) {
+                    console.log('Update found:', latestVersion);
+                    document.getElementById('update-toast').style.transform = 'translateX(-50%) translateY(0)';
+                } else {
+                    console.log('App is up to date.');
+                }
+            } catch (e) {
+                console.log('Skipping update check (offline or local)', e);
+            }
+        })();
     </script>
 </body>
 

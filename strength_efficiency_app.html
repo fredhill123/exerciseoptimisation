@@ -434,6 +434,64 @@
                 padding: 0.75rem 1rem;
                 font-size: 0.875rem;
             }
+
+            .weight-sliders {
+                flex-direction: column;
+                gap: 1rem;
+            }
+        }
+
+        .weight-sliders {
+            display: flex;
+            justify-content: center;
+            gap: 2rem;
+            margin-bottom: 2rem;
+            padding: 1.5rem;
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            flex-wrap: wrap;
+        }
+
+        .weight-slider {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 0.5rem;
+            min-width: 120px;
+        }
+
+        .weight-slider label {
+            font-size: 0.875rem;
+            font-weight: 600;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .weight-slider input[type="range"] {
+            width: 100%;
+            height: 6px;
+            border-radius: 3px;
+            background: var(--bg-tertiary);
+            appearance: none;
+            cursor: pointer;
+        }
+
+        .weight-slider input[type="range"]::-webkit-slider-thumb {
+            appearance: none;
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            background: var(--accent-gradient);
+            cursor: pointer;
+            box-shadow: 0 2px 8px rgba(99, 102, 241, 0.4);
+        }
+
+        .weight-value {
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: var(--text-primary);
         }
     </style>
 </head>
@@ -472,6 +530,24 @@
             <button class="tab" data-count="6">6 Exercises</button>
         </div>
 
+        <div class="weight-sliders">
+            <div class="weight-slider">
+                <label>Coverage</label>
+                <input type="range" id="weight-coverage" min="0" max="100" value="40">
+                <span class="weight-value" id="weight-coverage-val">40</span>
+            </div>
+            <div class="weight-slider">
+                <label>Potency</label>
+                <input type="range" id="weight-potency" min="0" max="100" value="30">
+                <span class="weight-value" id="weight-potency-val">30</span>
+            </div>
+            <div class="weight-slider">
+                <label>Synergy</label>
+                <input type="range" id="weight-synergy" min="0" max="100" value="30">
+                <span class="weight-value" id="weight-synergy-val">30</span>
+            </div>
+        </div>
+
         <div id="results">
             <div class="loading">
                 <div class="loading-spinner"></div>
@@ -481,35 +557,32 @@
     </div>
 
     <script>
-        // Exercise database (27 exercises - optimized for performance)
+        // Exercise database (23 exercises - consolidated for efficiency)
+        // exhaustion_cost: 0-3 (systemic/CNS fatigue), spinal_load: 0-3 (axial spinal stress)
         const exercises = [
-            { name: "Back Squat", tier_points: 5, knee_dominant: 1, hip_dominant: 0, upper_push: 0, upper_pull: 0, plane: "NA", heavy_spinal_loader: 1 },
-            { name: "Front Squat", tier_points: 5, knee_dominant: 1, hip_dominant: 0, upper_push: 0, upper_pull: 0, plane: "NA", heavy_spinal_loader: 0 },
-            { name: "Conventional Deadlift", tier_points: 5, knee_dominant: 0, hip_dominant: 1, upper_push: 0, upper_pull: 0, plane: "NA", heavy_spinal_loader: 1 },
-            { name: "Trap Bar Deadlift", tier_points: 5, knee_dominant: 1, hip_dominant: 1, upper_push: 0, upper_pull: 0, plane: "NA", heavy_spinal_loader: 0 },
-            { name: "Barbell Bench Press", tier_points: 5, knee_dominant: 0, hip_dominant: 0, upper_push: 1, upper_pull: 0, plane: "horizontal", heavy_spinal_loader: 0 },
-            { name: "Standing Barbell OHP", tier_points: 5, knee_dominant: 0, hip_dominant: 0, upper_push: 1, upper_pull: 0, plane: "vertical", heavy_spinal_loader: 1 },
-            { name: "Weighted Pull-up", tier_points: 5, knee_dominant: 0, hip_dominant: 0, upper_push: 0, upper_pull: 1, plane: "vertical", heavy_spinal_loader: 0 },
-            { name: "Dumbbell Bench Press", tier_points: 4, knee_dominant: 0, hip_dominant: 0, upper_push: 1, upper_pull: 0, plane: "horizontal", heavy_spinal_loader: 0 },
-            { name: "Incline DB Press", tier_points: 4, knee_dominant: 0, hip_dominant: 0, upper_push: 1, upper_pull: 0, plane: "horizontal", heavy_spinal_loader: 0 },
-            { name: "Dips", tier_points: 4, knee_dominant: 0, hip_dominant: 0, upper_push: 1, upper_pull: 0, plane: "vertical", heavy_spinal_loader: 0 },
-            { name: "Barbell Row", tier_points: 4, knee_dominant: 0, hip_dominant: 0, upper_push: 0, upper_pull: 1, plane: "horizontal", heavy_spinal_loader: 0 },
-            { name: "Dumbbell Row", tier_points: 4, knee_dominant: 0, hip_dominant: 0, upper_push: 0, upper_pull: 1, plane: "horizontal", heavy_spinal_loader: 0 },
-            { name: "Lunges", tier_points: 4, knee_dominant: 1, hip_dominant: 0, upper_push: 0, upper_pull: 0, plane: "NA", heavy_spinal_loader: 0 },
-            { name: "Bulgarian Split Squat", tier_points: 4, knee_dominant: 1, hip_dominant: 0, upper_push: 0, upper_pull: 0, plane: "NA", heavy_spinal_loader: 0 },
-            { name: "Romanian DL", tier_points: 4, knee_dominant: 0, hip_dominant: 1, upper_push: 0, upper_pull: 0, plane: "NA", heavy_spinal_loader: 0 },
-            { name: "Leg Press", tier_points: 4, knee_dominant: 1, hip_dominant: 0, upper_push: 0, upper_pull: 0, plane: "NA", heavy_spinal_loader: 0 },
-            { name: "Weighted Push-ups", tier_points: 4, knee_dominant: 0, hip_dominant: 0, upper_push: 1, upper_pull: 0, plane: "horizontal", heavy_spinal_loader: 0 },
-            { name: "Lat Pulldown", tier_points: 2, knee_dominant: 0, hip_dominant: 0, upper_push: 0, upper_pull: 1, plane: "vertical", heavy_spinal_loader: 0 },
-            { name: "Goblet Squat", tier_points: 2, knee_dominant: 1, hip_dominant: 0, upper_push: 0, upper_pull: 0, plane: "NA", heavy_spinal_loader: 0 },
-            { name: "Hyperextensions", tier_points: 2, knee_dominant: 0, hip_dominant: 1, upper_push: 0, upper_pull: 0, plane: "NA", heavy_spinal_loader: 0 },
-            { name: "Kettlebell Swing", tier_points: 2, knee_dominant: 0, hip_dominant: 1, upper_push: 0, upper_pull: 0, plane: "NA", heavy_spinal_loader: 0 },
-            { name: "Chin-up", tier_points: 5, knee_dominant: 0, hip_dominant: 0, upper_push: 0, upper_pull: 1, plane: "vertical", heavy_spinal_loader: 0 },
-            { name: "Power Clean", tier_points: 4, knee_dominant: 1, hip_dominant: 1, upper_push: 0, upper_pull: 0, plane: "NA", heavy_spinal_loader: 0 },
-            { name: "Farmers Walk", tier_points: 1, knee_dominant: 0, hip_dominant: 0, upper_push: 0, upper_pull: 0, plane: "NA", heavy_spinal_loader: 0 },
-            { name: "Chest Supported Row", tier_points: 4, knee_dominant: 0, hip_dominant: 0, upper_push: 0, upper_pull: 1, plane: "horizontal", heavy_spinal_loader: 0 },
-            { name: "Inverted Row", tier_points: 2, knee_dominant: 0, hip_dominant: 0, upper_push: 0, upper_pull: 1, plane: "horizontal", heavy_spinal_loader: 0 },
-            { name: "Step-ups", tier_points: 4, knee_dominant: 1, hip_dominant: 0, upper_push: 0, upper_pull: 0, plane: "NA", heavy_spinal_loader: 0 }
+            { name: "Back Squat", tier_points: 5, knee_dominant: 1, hip_dominant: 0, upper_push: 0, upper_pull: 0, plane: "NA", exhaustion_cost: 2, spinal_load: 3 },
+            { name: "Front Squat", tier_points: 5, knee_dominant: 1, hip_dominant: 0, upper_push: 0, upper_pull: 0, plane: "NA", exhaustion_cost: 2, spinal_load: 2 },
+            { name: "Conventional Deadlift", tier_points: 5, knee_dominant: 0, hip_dominant: 1, upper_push: 0, upper_pull: 0, plane: "NA", exhaustion_cost: 3, spinal_load: 3 },
+            { name: "Trap Bar Deadlift", tier_points: 5, knee_dominant: 1, hip_dominant: 1, upper_push: 0, upper_pull: 0, plane: "NA", exhaustion_cost: 2, spinal_load: 2 },
+            { name: "Barbell Bench Press", tier_points: 5, knee_dominant: 0, hip_dominant: 0, upper_push: 1, upper_pull: 0, plane: "horizontal", exhaustion_cost: 1, spinal_load: 0 },
+            { name: "Standing Barbell OHP", tier_points: 5, knee_dominant: 0, hip_dominant: 0, upper_push: 1, upper_pull: 0, plane: "vertical", exhaustion_cost: 2, spinal_load: 2 },
+            { name: "Chin-ups/Pull-ups", tier_points: 5, knee_dominant: 0, hip_dominant: 0, upper_push: 0, upper_pull: 1, plane: "vertical", exhaustion_cost: 1, spinal_load: 1 },
+            { name: "DB Press (Flat/Incline)", tier_points: 4, knee_dominant: 0, hip_dominant: 0, upper_push: 1, upper_pull: 0, plane: "horizontal", exhaustion_cost: 1, spinal_load: 0 },
+            { name: "Dips", tier_points: 4, knee_dominant: 0, hip_dominant: 0, upper_push: 1, upper_pull: 0, plane: "vertical", exhaustion_cost: 1, spinal_load: 0 },
+            { name: "Barbell Row", tier_points: 4, knee_dominant: 0, hip_dominant: 0, upper_push: 0, upper_pull: 1, plane: "horizontal", exhaustion_cost: 2, spinal_load: 2 },
+            { name: "Dumbbell Row", tier_points: 4, knee_dominant: 0, hip_dominant: 0, upper_push: 0, upper_pull: 1, plane: "horizontal", exhaustion_cost: 1, spinal_load: 0 },
+            { name: "Bulgarian Split Squat", tier_points: 4, knee_dominant: 1, hip_dominant: 0, upper_push: 0, upper_pull: 0, plane: "NA", exhaustion_cost: 1, spinal_load: 1 },
+            { name: "Romanian DL", tier_points: 4, knee_dominant: 0, hip_dominant: 1, upper_push: 0, upper_pull: 0, plane: "NA", exhaustion_cost: 1, spinal_load: 1 },
+            { name: "Leg Press", tier_points: 4, knee_dominant: 1, hip_dominant: 0, upper_push: 0, upper_pull: 0, plane: "NA", exhaustion_cost: 1, spinal_load: 0 },
+            { name: "Weighted Push-ups", tier_points: 4, knee_dominant: 0, hip_dominant: 0, upper_push: 1, upper_pull: 0, plane: "horizontal", exhaustion_cost: 1, spinal_load: 0 },
+            { name: "Lat Pulldown", tier_points: 2, knee_dominant: 0, hip_dominant: 0, upper_push: 0, upper_pull: 1, plane: "vertical", exhaustion_cost: 0, spinal_load: 0 },
+            { name: "Goblet Squat", tier_points: 2, knee_dominant: 1, hip_dominant: 0, upper_push: 0, upper_pull: 0, plane: "NA", exhaustion_cost: 0, spinal_load: 0 },
+            { name: "Hyperextensions", tier_points: 2, knee_dominant: 0, hip_dominant: 1, upper_push: 0, upper_pull: 0, plane: "NA", exhaustion_cost: 0, spinal_load: 0 },
+            { name: "Kettlebell Swing", tier_points: 2, knee_dominant: 0, hip_dominant: 1, upper_push: 0, upper_pull: 0, plane: "NA", exhaustion_cost: 0, spinal_load: 1 },
+            { name: "Power Clean", tier_points: 4, knee_dominant: 1, hip_dominant: 1, upper_push: 0, upper_pull: 0, plane: "NA", exhaustion_cost: 2, spinal_load: 2 },
+            { name: "Farmers Walk", tier_points: 1, knee_dominant: 0, hip_dominant: 0, upper_push: 0, upper_pull: 0, plane: "NA", exhaustion_cost: 0, spinal_load: 1 },
+            { name: "Chest Supported Row", tier_points: 4, knee_dominant: 0, hip_dominant: 0, upper_push: 0, upper_pull: 1, plane: "horizontal", exhaustion_cost: 1, spinal_load: 0 },
+            { name: "Inverted Row", tier_points: 2, knee_dominant: 0, hip_dominant: 0, upper_push: 0, upper_pull: 1, plane: "horizontal", exhaustion_cost: 0, spinal_load: 0 }
         ];
 
         // Scoring functions
@@ -529,12 +602,57 @@
         }
 
         function scorePart2(workout) {
+            // Separate exercises by tier
+            const tier1and2 = workout.filter(e => e.tier_points >= 4); // Tier 1 (5) and Tier 2 (4)
+            const tier3plus = workout.filter(e => e.tier_points < 4);  // Tier 3 and lower
+
+            // Define movement patterns for redundancy check
+            const patterns = ['knee_dominant', 'hip_dominant', 'upper_push', 'upper_pull'];
+
+            // For Tier 1/2 exercises, only count the highest per pattern
+            let tier1and2Potency = 0;
+            const countedByPattern = {};
+
+            // Sort by tier_points descending so we pick the best exercise first
+            const sortedTier1and2 = [...tier1and2].sort((a, b) => b.tier_points - a.tier_points);
+
+            for (const exercise of sortedTier1and2) {
+                // Find which patterns this exercise belongs to
+                const exercisePatterns = patterns.filter(p => exercise[p] === 1);
+
+                if (exercisePatterns.length === 0) {
+                    // Exercise doesn't hit any pattern (rare) - count it fully
+                    tier1and2Potency += exercise.tier_points;
+                } else {
+                    // Check if any pattern is already counted
+                    const alreadyCounted = exercisePatterns.some(p => countedByPattern[p]);
+
+                    if (!alreadyCounted) {
+                        // First Tier 1/2 exercise for this pattern - count it
+                        tier1and2Potency += exercise.tier_points;
+                        exercisePatterns.forEach(p => countedByPattern[p] = true);
+                    }
+                    // If already counted, this exercise gets 0 potency (redundancy penalty)
+                }
+            }
+
+            // Tier 3+ exercises count fully (no redundancy penalty for lighter exercises)
+            const tier3Potency = tier3plus.reduce((sum, e) => sum + e.tier_points, 0);
+
             const rawPotency = workout.reduce((sum, e) => sum + e.tier_points, 0);
-            const score = Math.min(30, rawPotency);
-            return { score, rawPotency };
+            const effectivePotency = tier1and2Potency + tier3Potency;
+            const score = Math.min(30, effectivePotency);
+
+            return {
+                score,
+                rawPotency,
+                effectivePotency,
+                redundancyPenalty: rawPotency - effectivePotency
+            };
         }
 
         function scorePart3(workout) {
+            const workoutSize = workout.length;
             const pushCount = workout.filter(e => e.upper_push).length;
             const pullCount = workout.filter(e => e.upper_pull).length;
 
@@ -551,16 +669,28 @@
                 pushPullStatus = 'fail';
             }
 
-            // Spinal Management
-            const hasBackSquat = workout.some(e => e.name === 'Back Squat');
-            const hasConvDL = workout.some(e => e.name === 'Conventional Deadlift');
-            let spinalScore, spinalStatus;
-            if (hasBackSquat && hasConvDL) {
-                spinalScore = 0;
-                spinalStatus = 'fail';
+            // Exhaustion Management (replaces old Spinal Management)
+            // Thresholds scale with workout size
+            const exhaustionBudget = workoutSize + 2; // 5 for 3ex, 6 for 4ex, etc.
+            const maxSpinalLoad = workoutSize + 2;    // Same scaling
+
+            const totalExhaustion = workout.reduce((sum, e) => sum + e.exhaustion_cost, 0);
+            const totalSpinalLoad = workout.reduce((sum, e) => sum + e.spinal_load, 0);
+
+            // Hard spinal threshold - workout is disqualified if exceeded
+            const spinalDisqualified = totalSpinalLoad > maxSpinalLoad;
+
+            // Exhaustion scoring (capped at 10 pts max penalty)
+            let exhaustionScore, exhaustionStatus;
+            if (totalExhaustion <= exhaustionBudget) {
+                exhaustionScore = 10;
+                exhaustionStatus = 'pass';
+            } else if (totalExhaustion === exhaustionBudget + 1) {
+                exhaustionScore = 5;
+                exhaustionStatus = 'partial';
             } else {
-                spinalScore = 10;
-                spinalStatus = 'pass';
+                exhaustionScore = 0;
+                exhaustionStatus = 'fail';
             }
 
             // Plane Coverage
@@ -579,20 +709,53 @@
             }
 
             return {
-                score: pushPullScore + spinalScore + planeScore,
+                score: pushPullScore + exhaustionScore + planeScore,
                 pushPullScore, pushPullStatus, pushCount, pullCount,
-                spinalScore, spinalStatus,
+                exhaustionScore, exhaustionStatus, totalExhaustion, exhaustionBudget,
+                totalSpinalLoad, maxSpinalLoad, spinalDisqualified,
                 planeScore, planeStatus
             };
         }
 
-        function scoreWorkout(workout) {
+        // Get current weights from sliders (returns normalized weights that sum to 1)
+        function getWeights() {
+            const coverageEl = document.getElementById('weight-coverage');
+            const potencyEl = document.getElementById('weight-potency');
+            const synergyEl = document.getElementById('weight-synergy');
+
+            // Parse values, defaulting only for NaN (not for 0)
+            const coverage = coverageEl ? parseInt(coverageEl.value, 10) : 40;
+            const potency = potencyEl ? parseInt(potencyEl.value, 10) : 30;
+            const synergy = synergyEl ? parseInt(synergyEl.value, 10) : 30;
+
+            const total = coverage + potency + synergy;
+            // Prevent division by zero - if all are 0, use equal weights
+            if (total === 0) {
+                return { coverage: 1 / 3, potency: 1 / 3, synergy: 1 / 3 };
+            }
+            return {
+                coverage: coverage / total,
+                potency: potency / total,
+                synergy: synergy / total
+            };
+        }
+
+        function scoreWorkout(workout, weights) {
             const part1 = scorePart1(workout);
             const part2 = scorePart2(workout);
             const part3 = scorePart3(workout);
 
+            // Normalize each part to 0-1 scale, then apply weights
+            const norm1 = part1.score / 40;  // Coverage: max 40
+            const norm2 = part2.score / 30;  // Potency: max 30
+            const norm3 = part3.score / 30;  // Synergy: max 30
+
+            // Weighted total scaled to 100
+            const total = Math.round((norm1 * weights.coverage + norm2 * weights.potency + norm3 * weights.synergy) * 100);
+
             return {
-                total: part1.score + part2.score + part3.score,
+                total,
+                disqualified: part3.spinalDisqualified,
                 part1, part2, part3,
                 exercises: workout.map(e => e.name)
             };
@@ -611,10 +774,18 @@
         }
 
         function findTopCombinations(nExercises, topN = 10) {
+            const weights = getWeights();
             const allCombos = [...combinations(exercises, nExercises)];
-            const scored = allCombos.map(combo => scoreWorkout(combo));
-            scored.sort((a, b) => b.total - a.total);
-            return { results: scored.slice(0, topN), totalCombos: allCombos.length };
+            const scored = allCombos.map(combo => scoreWorkout(combo, weights));
+            // Filter out disqualified workouts (exceeded spinal threshold)
+            const qualified = scored.filter(w => !w.disqualified);
+            qualified.sort((a, b) => b.total - a.total);
+            return {
+                results: qualified.slice(0, topN),
+                totalCombos: allCombos.length,
+                qualifiedCombos: qualified.length,
+                disqualifiedCombos: scored.length - qualified.length
+            };
         }
 
         // UI Functions
@@ -632,12 +803,12 @@
         }
 
         function renderResults(nExercises) {
-            const { results, totalCombos } = findTopCombinations(nExercises, 10);
+            const { results, totalCombos, qualifiedCombos, disqualifiedCombos } = findTopCombinations(nExercises, 10);
 
             let html = `
                 <div class="results-header">
                     <h2 class="results-title">Top 10 ${nExercises}-Exercise Combinations</h2>
-                    <span class="combo-count">${totalCombos.toLocaleString()} possible combinations</span>
+                    <span class="combo-count">${qualifiedCombos.toLocaleString()} valid (${disqualifiedCombos} disqualified for spinal load)</span>
                 </div>
                 <div class="workout-grid">
             `;
@@ -702,8 +873,12 @@
                                         <span>${result.part2.rawPotency} pts</span>
                                     </div>
                                     <div class="detail-row">
-                                        <span>Capped</span>
-                                        <span>${result.part2.score} pts</span>
+                                        <span>Redundancy</span>
+                                        <span class="${result.part2.redundancyPenalty > 0 ? 'status-fail' : 'status-pass'}">${result.part2.redundancyPenalty > 0 ? '-' + result.part2.redundancyPenalty : '0'}</span>
+                                    </div>
+                                    <div class="detail-row">
+                                        <span>Effective</span>
+                                        <span>${result.part2.effectivePotency} pts</span>
                                     </div>
                                 </div>
                             </div>
@@ -720,8 +895,12 @@
                                         <span class="${getStatusClass(result.part3.pushPullStatus)}">${result.part3.pushPullScore}/10</span>
                                     </div>
                                     <div class="detail-row">
+                                        <span>Exhaustion</span>
+                                        <span class="${getStatusClass(result.part3.exhaustionStatus)}">${result.part3.totalExhaustion}/${result.part3.exhaustionBudget}</span>
+                                    </div>
+                                    <div class="detail-row">
                                         <span>Spinal</span>
-                                        <span class="${getStatusClass(result.part3.spinalStatus)}">${result.part3.spinalScore}/10</span>
+                                        <span class="${result.part3.totalSpinalLoad <= result.part3.maxSpinalLoad ? 'status-pass' : 'status-fail'}">${result.part3.totalSpinalLoad}/${result.part3.maxSpinalLoad}</span>
                                     </div>
                                     <div class="detail-row">
                                         <span>Planes</span>
@@ -754,6 +933,35 @@
 
                 // Use setTimeout to allow UI to update before heavy computation
                 setTimeout(() => renderResults(count), 50);
+            });
+        });
+
+        // Track current exercise count for re-renders
+        let currentExerciseCount = 3;
+
+        // Weight slider event listeners
+        ['coverage', 'potency', 'synergy'].forEach(type => {
+            const slider = document.getElementById(`weight-${type}`);
+            const valueDisplay = document.getElementById(`weight-${type}-val`);
+            slider.addEventListener('input', () => {
+                valueDisplay.textContent = slider.value;
+            });
+            slider.addEventListener('change', () => {
+                // Re-render results when slider changes
+                document.getElementById('results').innerHTML = `
+                    <div class="loading">
+                        <div class="loading-spinner"></div>
+                        <p>Recalculating...</p>
+                    </div>
+                `;
+                setTimeout(() => renderResults(currentExerciseCount), 50);
+            });
+        });
+
+        // Update currentExerciseCount when tabs are clicked
+        document.querySelectorAll('.tab').forEach(tab => {
+            tab.addEventListener('click', () => {
+                currentExerciseCount = parseInt(tab.dataset.count);
             });
         });
 
